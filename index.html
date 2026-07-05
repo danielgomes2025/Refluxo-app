@@ -14,8 +14,8 @@
 <body>
 
   <header class="topbar">
-    <span class="logo">🌿</span>
-    <h1>GastroCuida</h1>
+    <span class="logo" id="brand-logo">🌿</span>
+    <h1 id="brand-name">GastroCuida</h1>
     <div class="clock">
       <div class="time" id="clock-time">--:--</div>
       <div class="sync" id="clock-sync">sincronizando…</div>
@@ -131,6 +131,7 @@
         <div class="check-row" data-sub="rotina"><span style="font-size:20px">⏰</span><span class="n"><b>Rotina & alarmes</b><br><span class="muted">Horários das refeições e do sono</span></span><span>›</span></div>
         <div class="check-row" data-sub="remedios"><span style="font-size:20px">💊</span><span class="n"><b>Remédios</b><br><span class="muted">Lembretes de medicação</span></span><span>›</span></div>
         <div class="check-row" data-sub="peso"><span style="font-size:20px">⚖️</span><span class="n"><b>Peso & metas</b><br><span class="muted">Evolução, gráfico e desafios</span></span><span>›</span></div>
+        <div class="check-row" data-sub="relatorio"><span style="font-size:20px">🩺</span><span class="n"><b>Relatório para a consulta</b><br><span class="muted">Resumo dos sintomas, peso e hábitos para mostrar ao médico</span></span><span>›</span></div>
         <div class="check-row" data-sub="dicas"><span style="font-size:20px">💡</span><span class="n"><b>Dicas</b><br><span class="muted">Hábitos que aceleram a recuperação</span></span><span>›</span></div>
         <div class="check-row" data-sub="safra"><span style="font-size:20px">🧺</span><span class="n"><b>Produtos da estação</b><br><span class="muted">Frutas e legumes do mês</span></span><span>›</span></div>
         <div class="check-row" data-sub="sobre"><span style="font-size:20px">🌿</span><span class="n"><b>Sobre & dados</b><br><span class="muted">Aviso médico, exportar/importar</span></span><span>›</span></div>
@@ -241,9 +242,28 @@
     </section>
 
     <!-- ===================== SUB: SOBRE ===================== -->
+    <!-- ===================== SUB: RELATÓRIO ===================== -->
+    <section class="view" id="view-relatorio" aria-label="Relatório para a consulta">
+      <button class="btn subtle small no-print" data-goto="mais">‹ Voltar</button>
+      <h2 class="section no-print" style="margin-top:10px">Relatório para a consulta 🩺</h2>
+      <p class="muted no-print">Leve este resumo para o seu médico ou nutricionista: ele mostra em 1 página o que aconteceu desde a última consulta.</p>
+      <div class="seg no-print" id="report-period" style="margin-bottom:12px">
+        <button data-d="7">7 dias</button>
+        <button data-d="30" class="active">30 dias</button>
+        <button data-d="90">90 dias</button>
+      </div>
+      <div id="report-content"></div>
+      <div class="row no-print" style="margin-top:12px">
+        <button class="btn" id="report-print">🖨️ Imprimir / PDF</button>
+        <button class="btn subtle" id="report-copy">📋 Copiar texto</button>
+        <button class="btn subtle" id="report-wa">💬 WhatsApp</button>
+      </div>
+    </section>
+
     <section class="view" id="view-sobre" aria-label="Sobre">
       <button class="btn subtle small" data-goto="mais">‹ Voltar</button>
       <h2 class="section" style="margin-top:10px">Sobre o GastroCuida 🌿</h2>
+      <div class="card" id="brand-about" style="display:none"></div>
       <div class="card">
         <p>O GastroCuida organiza a parte mais difícil da recuperação de quem tem <b>gastrite</b> e <b>refluxo (DRGE)</b>: a alimentação e a rotina. Guia de alimentos, receitas leves, horários com alarme, lembrete de remédios, diário de sintomas, peso e metas — tudo no seu bolso, funcionando offline.</p>
         <p class="muted">Seus dados ficam somente no seu aparelho (armazenamento local do navegador). Nada é enviado para servidores.</p>
@@ -292,6 +312,7 @@
 
   <div id="toast" role="status"></div>
 
+  <script src="config.js"></script>
   <script src="data.js"></script>
   <script src="app.js"></script>
 </body>

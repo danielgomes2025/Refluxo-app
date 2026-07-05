@@ -358,3 +358,18 @@ nav.bottom button.active { color: var(--brand); }
 /* ---------- onboarding ---------- */
 .onb-logo { font-size: 44px; text-align: center; }
 .onb h3 { text-align: center; }
+
+/* ---------- relatório para a consulta ---------- */
+.report-head { display: flex; gap: 12px; align-items: flex-start; padding-bottom: 12px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+.report-card h4 { margin: 16px 0 6px; font-size: 14.5px; }
+.report-card table td { font-variant-numeric: tabular-nums; }
+
+/* ---------- impressão ---------- */
+@media print {
+  .topbar, nav.bottom, .no-print, #toast, #alarm-banner, .modal-backdrop { display: none !important; }
+  body { padding: 0; background: #fff; color: #000; }
+  main { max-width: none; padding: 0; }
+  .card, .report-card { box-shadow: none; border: 1px solid #bbb; break-inside: avoid; }
+  .view { display: none !important; }
+  .view.active { display: block !important; }
+}

@@ -116,7 +116,7 @@ $("#theme-btn").addEventListener("click", () => {
 
 /* ---------------- navegação ---------------- */
 let currentView = "inicio";
-const SUBVIEWS = ["rotina", "remedios", "peso", "dicas", "safra", "sobre"];
+const SUBVIEWS = ["rotina", "remedios", "peso", "dicas", "safra", "sobre", "relatorio"];
 
 function goto(view) {
   currentView = view;
@@ -140,7 +140,7 @@ $("#quick-cha").addEventListener("click", () => { goto("guia"); setFoodFilter("c
 function renderView(view) {
   ({ inicio: renderHome, guia: renderGuide, receitas: renderRecipes, diario: renderDiary,
      rotina: renderRoutine, remedios: renderMeds, peso: renderWeight, dicas: renderTips,
-     safra: renderSeason, sobre: renderAbout }[view] || (() => {}))();
+     safra: renderSeason, sobre: renderAbout, relatorio: renderReport }[view] || (() => {}))();
 }
 function renderAll() { renderView(currentView); }
 
@@ -905,6 +905,167 @@ function renderSeason() {
 function renderAbout() {
   $("#user-name").value = state.settings.name || "";
 }
+
+/* =========================================================
+   MARCA (white-label) — configurada em config.js
+   ========================================================= */
+function applyBrand() {
+  const B = typeof BRAND !== "undefined" ? BRAND : {};
+  if (B.appName) { $("#brand-name").textContent = B.appName; document.title = `${B.appName} · Gastrite & Refluxo`; }
+  if (B.logoEmoji) $("#brand-logo").textContent = B.logoEmoji;
+  const about = $("#brand-about");
+  if (B.doctorName) {
+    about.style.display = "";
+    about.innerHTML = `<h4>👨‍⚕️ Oferecido por ${esc(B.doctorName)}</h4>
+      <p>${[B.specialty, B.crm].filter(Boolean).map(esc).join(" · ")}</p>
+      ${B.clinic ? `<p>${esc(B.clinic)}</p>` : ""}
+      ${B.phone ? `<p>📞 ${esc(B.phone)}</p>` : ""}
+      ${B.whatsapp ? `<button class="btn ghost small" onclick="window.open('https://wa.me/${esc(B.whatsapp)}')">💬 Falar com o consultório</button>` : ""}`;
+  }
+}
+
+/* =========================================================
+   RELATÓRIO PARA A CONSULTA
+   ========================================================= */
+let reportDays = 30;
+
+function computeReport(nDays) {
+  const B = typeof BRAND !== "undefined" ? BRAND : {};
+  const days = [];
+  const base = now();
+  for (let i = nDays - 1; i >= 0; i--) {
+    const d = new Date(base); d.setDate(d.getDate() - i);
+    const k = dateKey(d);
+    days.push({ k, d, rec: state.days[k] });
+  }
+  const fmtD = (d) => `${pad(d.getDate())}/${pad(d.getMonth() + 1)}`;
+
+  const symCount = {}; let symTotal = 0, daysWithSym = 0;
+  const symDays = [];
+  let mealsDone = 0, water = 0, waterDays = 0, activeDays = 0;
+  let medSched = 0, medTaken = 0;
+
+  for (const { k, d, rec } of days) {
+    if (rec && (Object.keys(rec.meals || {}).length || (rec.symptoms || []).length || rec.water)) activeDays++;
+    const syms = rec?.symptoms || [];
+    if (syms.length) {
+      daysWithSym++;
+      const notes = Object.entries(rec.meals || {}).filter(([, m]) => m.note).map(([id, m]) => m.note);
+      symDays.push({ d, n: syms.length, int: Math.max(...syms.map((s) => s.intensity)), notes });
+    }
+    for (const s of syms) {
+      symTotal++;
+      const c = (symCount[s.type] ??= { n: 0, maxInt: 0 });
+      c.n++; c.maxInt = Math.max(c.maxInt, s.intensity);
+    }
+    if (rec) {
+      mealsDone += Object.values(rec.meals || {}).filter((m) => m.done).length;
+      if (rec.water) { water += rec.water; waterDays++; }
+      for (const med of state.meds) for (const t of med.times) { medSched++; if (rec.meds?.[med.id]?.[t]) medTaken++; }
+    } else {
+      medSched += state.meds.reduce((a, m) => a + m.times.length, 0);
+    }
+  }
+  symDays.sort((a, b) => b.n - a.n || b.int - a.int);
+
+  const ws = state.weights
+    .filter((w) => w.date >= days[0].k && w.date <= days[days.length - 1].k)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  return {
+    B, days, fmtD, symCount, symTotal, daysWithSym, symDays,
+    mealsDone, water, waterDays, activeDays, medSched, medTaken, ws,
+    period: `${fmtD(days[0].d)} a ${fmtD(days[days.length - 1].d)}/${days[days.length - 1].d.getFullYear()}`,
+  };
+}
+
+function renderReport() {
+  const r = computeReport(reportDays);
+  const fmtKg = (v) => v.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const intDots = (n) => "●".repeat(n) + "○".repeat(3 - n);
+
+  const symRows = Object.entries(r.symCount)
+    .sort((a, b) => b[1].n - a[1].n)
+    .map(([id, c]) => {
+      const s = SYMPTOMS.find((x) => x.id === id) || { icon: "❓", name: id };
+      return `<tr><td>${s.icon} ${esc(s.name)}</td><td>${c.n}×</td><td>intensidade máx.: ${intDots(c.maxInt)}</td></tr>`;
+    }).join("");
+
+  const worst = r.symDays.slice(0, 3).map((x) =>
+    `<li><b>${r.fmtD(x.d)}</b> — ${x.n} sintoma${x.n > 1 ? "s" : ""} (máx. ${intDots(x.int)})${x.notes.length ? `<br><span class="muted">comeu: ${esc(x.notes.join(" · "))}</span>` : ""}</li>`).join("");
+
+  const wLine = r.ws.length >= 2
+    ? `${fmtKg(r.ws[0].kg)} kg → <b>${fmtKg(r.ws[r.ws.length - 1].kg)} kg</b> (${(r.ws[r.ws.length - 1].kg - r.ws[0].kg) >= 0 ? "+" : ""}${fmtKg(r.ws[r.ws.length - 1].kg - r.ws[0].kg)} kg no período)`
+    : r.ws.length === 1 ? `${fmtKg(r.ws[0].kg)} kg (1 registro no período)` : "sem registros no período";
+
+  const goals = state.goals.map((g) => `<li>${esc(g.title)} — sequência atual: <b>${streak(g)} dia(s)</b></li>`).join("");
+
+  $("#report-content").innerHTML = `
+    <div class="card report-card">
+      <div class="report-head">
+        <div style="font-size:26px">${r.B.logoEmoji || "🌿"}</div>
+        <div>
+          <b>${esc(r.B.appName || "GastroCuida")} — Relatório do paciente</b><br>
+          <span class="muted">${state.settings.name ? "Paciente: " + esc(state.settings.name) + " · " : ""}Período: ${r.period} · Gerado em ${r.fmtD(now())}/${now().getFullYear()}</span>
+          ${r.B.doctorName ? `<br><span class="muted">Acompanhamento: ${esc(r.B.doctorName)}${r.B.crm ? " · " + esc(r.B.crm) : ""}</span>` : ""}
+        </div>
+      </div>
+
+      <h4>🔥 Sintomas</h4>
+      ${r.symTotal
+        ? `<p><b>${r.symTotal}</b> registro(s) em <b>${r.daysWithSym}</b> de ${reportDays} dias.</p>
+           <table class="data-table">${symRows}</table>
+           ${worst ? `<p style="margin-top:10px"><b>Piores dias:</b></p><ul style="margin:4px 0 0;padding-left:18px;font-size:13.5px">${worst}</ul>` : ""}`
+        : `<p>Nenhum sintoma registrado no período. 🎉</p>`}
+
+      <h4>⚖️ Peso</h4>
+      <p>${wLine}${state.settings.goalWeight ? ` · Meta: ${fmtKg(state.settings.goalWeight)} kg` : ""}</p>
+
+      <h4>🍽️ Hábitos</h4>
+      <p>Usou o app em <b>${r.activeDays}</b> de ${reportDays} dias · <b>${r.mealsDone}</b> refeições marcadas
+      ${r.waterDays ? ` · média de <b>${(r.water / r.waterDays).toFixed(1)}</b> copos de água/dia` : ""}</p>
+      ${r.medSched ? `<p>💊 Remédios: <b>${Math.round((r.medTaken / r.medSched) * 100)}%</b> das doses marcadas como tomadas (${r.medTaken}/${r.medSched})</p>` : ""}
+      ${goals ? `<p style="margin-bottom:2px">🎯 Metas em andamento:</p><ul style="margin:2px 0 0;padding-left:18px;font-size:13.5px">${goals}</ul>` : ""}
+
+      <p class="muted" style="margin-top:14px">Relatório gerado pelo app para apoiar a consulta — não substitui avaliação médica.</p>
+    </div>`;
+}
+
+function reportAsText() {
+  const r = computeReport(reportDays);
+  const fmtKg = (v) => v.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const L = [];
+  L.push(`📋 ${r.B.appName || "GastroCuida"} — Relatório do paciente`);
+  if (state.settings.name) L.push(`Paciente: ${state.settings.name}`);
+  L.push(`Período: ${r.period}`);
+  L.push("");
+  L.push(`🔥 Sintomas: ${r.symTotal} registro(s) em ${r.daysWithSym} de ${reportDays} dias`);
+  for (const [id, c] of Object.entries(r.symCount).sort((a, b) => b[1].n - a[1].n)) {
+    const s = SYMPTOMS.find((x) => x.id === id) || { name: id };
+    L.push(`  • ${s.name}: ${c.n}× (intensidade máx. ${c.maxInt}/3)`);
+  }
+  L.push("");
+  if (r.ws.length >= 2) L.push(`⚖️ Peso: ${fmtKg(r.ws[0].kg)} → ${fmtKg(r.ws[r.ws.length - 1].kg)} kg (${(r.ws[r.ws.length - 1].kg - r.ws[0].kg) >= 0 ? "+" : ""}${fmtKg(r.ws[r.ws.length - 1].kg - r.ws[0].kg)})`);
+  else if (r.ws.length === 1) L.push(`⚖️ Peso: ${fmtKg(r.ws[0].kg)} kg`);
+  L.push(`🍽️ Uso do app: ${r.activeDays}/${reportDays} dias · ${r.mealsDone} refeições marcadas`);
+  if (r.medSched) L.push(`💊 Remédios: ${Math.round((r.medTaken / r.medSched) * 100)}% das doses tomadas`);
+  for (const g of state.goals) L.push(`🎯 ${g.title}: ${streak(g)} dia(s) de sequência`);
+  return L.join("\n");
+}
+
+$$("#report-period button").forEach((b) => b.addEventListener("click", () => {
+  $$("#report-period button").forEach((x) => x.classList.remove("active"));
+  b.classList.add("active");
+  reportDays = Number(b.dataset.d);
+  renderReport();
+}));
+$("#report-print").addEventListener("click", () => window.print());
+$("#report-copy").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText(reportAsText()); toast("Relatório copiado! 📋"); }
+  catch { toast("Não consegui copiar — use Imprimir/PDF"); }
+});
+$("#report-wa").addEventListener("click", () =>
+  window.open("https://wa.me/?text=" + encodeURIComponent(reportAsText())));
 $("#user-name").addEventListener("change", (e) => {
   state.settings.name = e.target.value.trim(); save(); toast("Salvo!");
 });
@@ -943,8 +1104,9 @@ function onboard() {
   if (state.settings.onboarded) return;
   openModal(`
     <div class="onb">
-      <div class="onb-logo">🌿</div>
-      <h3>Bem-vindo(a) ao GastroCuida!</h3>
+      <div class="onb-logo">${(typeof BRAND !== "undefined" && BRAND.logoEmoji) || "🌿"}</div>
+      <h3>Bem-vindo(a) ao ${esc((typeof BRAND !== "undefined" && BRAND.appName) || "GastroCuida")}!</h3>
+      ${typeof BRAND !== "undefined" && BRAND.doctorName ? `<p style="text-align:center;font-size:13.5px;color:var(--text-2)">Oferecido por <b>${esc(BRAND.doctorName)}</b>${BRAND.crm ? " · " + esc(BRAND.crm) : ""}${BRAND.welcomeNote ? `<br>“${esc(BRAND.welcomeNote)}”` : ""}</p>` : ""}
       <p style="font-size:14px;color:var(--text-2)">Seu companheiro para cuidar da <b>gastrite</b> e do <b>refluxo</b> — a alimentação é a parte mais difícil da recuperação, e você não precisa fazer isso sozinho(a).</p>
       <ul>
         <li>🥗 <b>Guia</b>: o que pode, o que evitar (carnes, frutas, raízes, chás…)</li>
@@ -968,6 +1130,7 @@ function onboard() {
    INICIALIZAÇÃO
    ========================================================= */
 applyTheme();
+applyBrand();
 updateClockUI();
 syncClock();
 setInterval(updateClockUI, 1000);

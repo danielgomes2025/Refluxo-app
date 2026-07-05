@@ -1,9 +1,10 @@
 /* GastroCuida — service worker: cache para funcionar offline */
-const CACHE = "gastrocuida-v2";
+const CACHE = "gastrocuida-v3";
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
+  "./config.js",
   "./data.js",
   "./app.js",
   "./manifest.webmanifest",
