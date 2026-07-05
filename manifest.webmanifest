@@ -1,0 +1,17 @@
+{
+  "name": "GastroCuida — Gastrite & Refluxo",
+  "short_name": "GastroCuida",
+  "description": "Guia alimentar, receitas leves, alarmes de refeição, lembrete de remédios, diário de sintomas, peso e metas para quem tem gastrite e refluxo.",
+  "lang": "pt-BR",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f6f3",
+  "theme_color": "#0f766e",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
