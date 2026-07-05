@@ -309,6 +309,7 @@ $("#food-search").addEventListener("input", (e) => { foodQuery = e.target.value;
    RECEITAS
    ========================================================= */
 let recipeFilter = "all";
+let recipeQuery = "";
 
 function renderRecipes() {
   const chips = [{ id: "all", name: "Todas", icon: "🍴" }, ...MEAL_TYPES];
@@ -316,7 +317,16 @@ function renderRecipes() {
     `<button class="chip ${recipeFilter === c.id ? "active" : ""}" data-id="${c.id}">${c.icon} ${c.name}</button>`).join("");
   $$("#recipe-chips .chip").forEach((c) => c.addEventListener("click", () => { recipeFilter = c.dataset.id; renderRecipes(); }));
 
-  const items = RECIPES.filter((r) => recipeFilter === "all" || r.meal === recipeFilter);
+  const q = recipeQuery.trim().toLowerCase();
+  const items = RECIPES.filter((r) =>
+    (recipeFilter === "all" || r.meal === recipeFilter) &&
+    (!q || r.name.toLowerCase().includes(q) ||
+      r.tags.some((t) => t.toLowerCase().includes(q)) ||
+      r.ing.some((i) => i.toLowerCase().includes(q))));
+  if (!items.length) {
+    $("#recipe-grid").innerHTML = `<div class="card"><p>Nenhuma receita encontrada 😕 — tente outro termo.</p></div>`;
+    return;
+  }
   $("#recipe-grid").innerHTML = items.map((r) => {
     const mt = MEAL_TYPES.find((m) => m.id === r.meal);
     return `<div class="recipe-card" data-id="${r.id}">
@@ -347,6 +357,8 @@ function openRecipe(id) {
     <div class="notice info">💡 ${esc(r.tip)}</div>
   `);
 }
+
+$("#recipe-search").addEventListener("input", (e) => { recipeQuery = e.target.value; renderRecipes(); });
 
 /* =========================================================
    DIÁRIO
