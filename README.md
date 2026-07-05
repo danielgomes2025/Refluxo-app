@@ -29,6 +29,7 @@ arquivo `config.js` (nome, CRM, especialidade, WhatsApp, mensagem de boas-vindas
 
 - **Página de apresentação para médicos:** [`medicos.html`](https://danielgomes2025.github.io/Refluxo-app/medicos.html)
 - **Demonstração com médica fictícia e 5 semanas de dados:** [`demo/`](https://danielgomes2025.github.io/Refluxo-app/demo/)
+- **Prévia do Painel do Médico (plano Profissional):** [`painel/`](https://danielgomes2025.github.io/Refluxo-app/painel/)
 - **Relatório para a consulta:** o paciente gera um resumo de 7/30/90 dias
   (sintomas, gatilhos, peso, adesão à medicação) e leva impresso, em PDF ou
   envia por WhatsApp.

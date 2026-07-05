@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Painel do Médico — GastroCuida (prévia)</title>
+<meta name="description" content="Prévia navegável do painel do médico do GastroCuida: acompanhe sintomas, peso e adesão de todos os seus pacientes com gastrite e refluxo." />
+<link rel="icon" href="../icon.svg" type="image/svg+xml" />
+<style>
+  :root {
+    --brand: #0f766e; --brand-2: #0b5e58; --soft: #d9efe9;
+    --bg: #f4f6f3; --surface: #ffffff; --text: #1c211d; --text-2: #55605a; --line: #e3e7e1;
+    /* tokens de dados (paleta validada, modo claro) */
+    --viz-surface: #fcfcfb; --viz-series: #2a78d6; --viz-grid: #e1e0d9;
+    --viz-axis: #c3c2b7; --viz-muted: #898781; --viz-ink: #0b0b0b; --viz-ink-2: #52514e;
+    --good: #0ca30c; --good-bg: #e3f4e4; --warn: #92600a; --warn-bg: #fcf0d8;
+    --serious: #a34a12; --serious-bg: #fdeadd; --crit: #b02a2a; --crit-bg: #fbe4e4;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+
+  .ribbon { position: fixed; top: 148px; right: -44px; z-index: 90; transform: rotate(45deg);
+    background: #b45309; color: #fff; font: 700 11px/1 system-ui; padding: 6px 52px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.3); pointer-events: none; }
+
+  /* ---------- login ---------- */
+  #login { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, var(--brand), var(--brand-2)); padding: 20px; }
+  .login-card { background: #fff; border-radius: 20px; padding: 34px 30px; width: 100%; max-width: 400px; box-shadow: 0 24px 60px rgba(0,0,0,.35); }
+  .login-card .logo { font-size: 40px; text-align: center; }
+  .login-card h1 { font-size: 21px; text-align: center; margin: 6px 0 2px; }
+  .login-card p.sub { text-align: center; color: var(--text-2); font-size: 13.5px; margin-bottom: 22px; }
+  .login-card label { display: block; font-size: 13px; font-weight: 600; color: var(--text-2); margin-bottom: 14px; }
+  .login-card input { width: 100%; margin-top: 4px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 15px; }
+  .login-card .btn { width: 100%; margin-top: 6px; }
+  .login-card .note { margin-top: 14px; font-size: 12px; color: var(--text-2); text-align: center; background: var(--soft); border-radius: 8px; padding: 8px; }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: var(--brand); color: #fff;
+    border: none; border-radius: 11px; padding: 11px 18px; font-size: 14.5px; font-weight: 700; cursor: pointer; text-decoration: none; }
+  .btn:hover { background: var(--brand-2); }
+  .btn.ghost { background: transparent; color: var(--brand); border: 1.5px solid var(--brand); }
+  .btn.small { padding: 7px 13px; font-size: 13px; border-radius: 9px; }
+
+  /* ---------- shell ---------- */
+  header.top { position: sticky; top: 0; z-index: 40; background: rgba(244,246,243,.94); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  header.top .wrap { display: flex; align-items: center; gap: 12px; padding: 12px 22px; max-width: 1100px; margin: 0 auto; }
+  header.top b { font-size: 16.5px; }
+  header.top .dr { margin-left: auto; text-align: right; line-height: 1.2; }
+  header.top .dr b { font-size: 14px; }
+  header.top .dr span { font-size: 12px; color: var(--text-2); }
+  .avatar { width: 38px; height: 38px; border-radius: 999px; background: var(--soft); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+
+  main { max-width: 1100px; margin: 0 auto; padding: 22px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+  .tab { padding: 8px 18px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-size: 14px; font-weight: 600; color: var(--text-2); cursor: pointer; }
+  .tab.active { background: var(--brand); border-color: var(--brand); color: #fff; }
+
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 18px; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .tile .lb { font-size: 12.5px; color: var(--text-2); }
+  .tile .vl { font-size: 26px; font-weight: 650; letter-spacing: -.01em; }
+  .tile .sb { font-size: 12.5px; color: var(--text-2); }
+
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; margin-bottom: 16px; }
+  .card h3 { font-size: 16px; margin-bottom: 10px; }
+
+  .chip { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+  .chip.good { color: var(--good); background: var(--good-bg); }
+  .chip.warn { color: var(--warn); background: var(--warn-bg); }
+  .chip.serious { color: var(--serious); background: var(--serious-bg); }
+  .chip.crit { color: var(--crit); background: var(--crit-bg); }
+  .chip.neutral { color: var(--text-2); background: var(--bg); }
+
+  table.pts { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.pts th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-2); padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  table.pts td { padding: 10px; border-bottom: 1px solid var(--line); vertical-align: middle; font-variant-numeric: tabular-nums; }
+  table.pts tr:hover td { background: var(--bg); }
+  table.pts tr { cursor: pointer; }
+  .pt-name { font-weight: 650; }
+  .pt-name span { display: block; font-weight: 400; font-size: 12px; color: var(--text-2); }
+  .tsearch { width: 100%; max-width: 320px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 14px; margin-bottom: 12px; }
+
+  .alert-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .alert-row:last-child { border-bottom: none; }
+  .alert-row .go { margin-left: auto; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 800px) { .grid-2 { grid-template-columns: 1fr; } }
+  .viz-root { background: var(--viz-surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 8px 4px; position: relative; }
+  .viz-root svg { display: block; width: 100%; height: auto; }
+  .viz-tooltip { position: absolute; pointer-events: none; z-index: 5; display: none; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,.12); padding: 6px 10px; font-size: 12.5px; white-space: nowrap; }
+  .viz-tooltip b { font-variant-numeric: tabular-nums; }
+
+  .pt-head { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; flex-wrap: wrap; }
+  .pt-head .avatar { width: 52px; height: 52px; font-size: 24px; }
+  .pt-head h2 { font-size: 21px; }
+  .pt-head .meta { font-size: 13px; color: var(--text-2); }
+  .worst li { margin-bottom: 8px; font-size: 14px; }
+  .worst span { color: var(--text-2); font-size: 13px; }
+  ul.worst { padding-left: 18px; }
+  .muted { color: var(--viz-muted); font-size: 12.5px; }
+
+  footer { text-align: center; padding: 26px 20px 40px; font-size: 12.5px; color: var(--text-2); }
+</style>
+</head>
+<body>
+
+<div class="ribbon">PRÉVIA · PLANO PROFISSIONAL</div>
+
+<!-- ============ LOGIN (simulado) ============ -->
+<div id="login">
+  <div class="login-card">
+    <div class="logo">🌿</div>
+    <h1>Painel do Médico</h1>
+    <p class="sub">GastroCuida · acompanhamento de pacientes</p>
+    <label>E-mail<input type="email" value="dra.ana@clinicaexemplo.com.br" readonly /></label>
+    <label>Senha<input type="password" value="••••••••" readonly /></label>
+    <button class="btn" id="btn-entrar">Entrar no painel</button>
+    <div class="note">🔍 Esta é uma <b>prévia navegável</b> com médica e pacientes fictícios — nenhum dado real. O painel faz parte do plano Profissional.</div>
+  </div>
+</div>
+
+<header class="top">
+  <div class="wrap">
+    <span style="font-size:20px">🌿</span> <b>GastroCuida</b> <span class="chip neutral">painel do médico</span>
+    <div class="dr"><b>Dra. Ana Beltrão</b><br><span>CRM-SP 000000 · Gastroenterologia</span></div>
+    <div class="avatar">👩‍⚕️</div>
+  </div>
+</header>
+
+<main>
+  <div class="tabs">
+    <button class="tab active" data-tab="geral">Visão geral</button>
+    <button class="tab" data-tab="paciente" id="tab-paciente" style="display:none">Paciente</button>
+  </div>
+
+  <!-- ============ VISÃO GERAL ============ -->
+  <section id="view-geral">
+    <div class="tiles">
+      <div class="tile"><div class="lb">Pacientes ativos</div><div class="vl">8</div><div class="sb">usando o app este mês</div></div>
+      <div class="tile"><div class="lb">Precisam de atenção</div><div class="vl">3</div><div class="sb">alertas abertos</div></div>
+      <div class="tile"><div class="lb">Adesão média ao remédio</div><div class="vl">84%</div><div class="sb">últimos 30 dias</div></div>
+      <div class="tile"><div class="lb">Sintomas na semana</div><div class="vl">17</div><div class="sb">−32% vs semana anterior</div></div>
+    </div>
+
+    <div class="card">
+      <h3>⚠️ Alertas</h3>
+      <div id="alerts"></div>
+    </div>
+
+    <div class="card">
+      <h3>👥 Pacientes</h3>
+      <input class="tsearch" id="pt-search" placeholder="Buscar paciente…" />
+      <div style="overflow-x:auto">
+        <table class="pts">
+          <thead><tr><th>Paciente</th><th>Situação</th><th>Sintomas (7d)</th><th>Peso (30d)</th><th>Adesão 💊</th><th>Último uso</th></tr></thead>
+          <tbody id="pt-rows"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FICHA DO PACIENTE ============ -->
+  <section id="view-paciente" style="display:none">
+    <button class="btn ghost small" id="btn-voltar">‹ Voltar à lista</button>
+    <div style="height:14px"></div>
+    <div class="card">
+      <div class="pt-head">
+        <div class="avatar" id="pd-avatar">👤</div>
+        <div>
+          <h2 id="pd-nome">—</h2>
+          <div class="meta" id="pd-meta">—</div>
+        </div>
+        <span class="chip" id="pd-chip" style="margin-left:auto">—</span>
+      </div>
+      <div class="tiles" id="pd-tiles"></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>Sintomas por semana (6 semanas)</h3>
+        <div id="chart-sym"></div>
+      </div>
+      <div class="card">
+        <h3>Evolução do peso (kg)</h3>
+        <div id="chart-peso"></div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>🔥 Piores dias e possíveis gatilhos</h3>
+        <ul class="worst" id="pd-worst"></ul>
+      </div>
+      <div class="card">
+        <h3>💊 Medicação e hábitos</h3>
+        <div id="pd-habits"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Prévia do painel · dados fictícios · GastroCuida — ferramenta educativa e de organização; não substitui avaliação médica.<br>
+    <a href="../medicos.html" style="color:var(--brand);font-weight:700">← Voltar à página de apresentação</a>
+  </footer>
+</main>
+
+<script>
+/* ================= dados fictícios ================= */
+const PATIENTS = [
+  { id: 1, nome: "Maria Souza", idade: 42, dx: "Gastrite + DRGE", status: ["good", "✅ Em progresso"], sym7: 2, symTrend: "↓", peso: [86.4, 85.9, 85.3, 84.6, 83.9, 82.9], meta: 79, adesao: 92, ultimo: "hoje", av: "👩",
+    semanas: [9, 7, 6, 4, 3, 2], worst: [["26/06", "3 sintomas (máx ●●●)", "pizza, refrigerante e chocolate (festa)"], ["14/06", "2 sintomas (máx ●●○)", "café com leite no desjejum"]],
+    habitos: ["92% das doses de Omeprazol tomadas (28/30)", "Média de 6,4 copos de água/dia", "🎯 16 dias sem café · 9 dias jantando 3h antes de dormir", "Jantar médio às 19:10 — dentro da meta"] },
+  { id: 2, nome: "João Pereira", idade: 55, dx: "DRGE erosiva", status: ["crit", "🔴 Crise ativa"], sym7: 6, symTrend: "↑", peso: [92.1, 92.3, 92.0, 92.4, 92.7, 92.8], meta: 88, adesao: 71, ultimo: "hoje", av: "👨",
+    semanas: [3, 2, 4, 3, 5, 6], worst: [["03/07", "3 sintomas (máx ●●●)", "churrasco com cerveja"], ["01/07", "2 sintomas (máx ●●●)", "café 3x no dia, jantar 22h"]],
+    habitos: ["71% das doses tomadas (21/30) — irregular à noite", "Jantar médio às 21:40 — MENOS de 2h antes de deitar", "Café presente em 5 dos últimos 7 dias", "Sugerido: reforçar orientação de horários"] },
+  { id: 3, nome: "Antônia Lima", idade: 61, dx: "Gastrite leve", status: ["good", "✅ Estável"], sym7: 1, symTrend: "→", peso: [71.2, 71.0, 71.1, 70.8, 70.9, 70.7], meta: 70, adesao: 88, ultimo: "ontem", av: "👵",
+    semanas: [2, 1, 2, 1, 1, 1], worst: [["22/06", "1 sintoma (●●○)", "feijoada no domingo"]],
+    habitos: ["88% das doses tomadas", "Média de 7,1 copos de água/dia", "🎯 21 dias de chá calmante à noite", "Sem crises há 3 semanas"] },
+  { id: 4, nome: "Carlos Mendes", idade: 38, dx: "DRGE", status: ["warn", "⚠️ Sem uso há 9 dias"], sym7: 0, symTrend: "?", peso: [88.0, 87.6, 87.7, 87.7, 87.7, 87.7], meta: 82, adesao: 40, ultimo: "há 9 dias", av: "👨",
+    semanas: [4, 3, 2, 1, 0, 0], worst: [["18/06", "2 sintomas (máx ●●○)", "não anotou refeições"]],
+    habitos: ["Parou de registrar em 26/06", "Adesão desconhecida na última semana", "Sugerido: mensagem de reengajamento da secretária"] },
+  { id: 5, nome: "Fernanda Alves", idade: 29, dx: "Gastrite nervosa", status: ["neutral", "🌱 Nova (3 dias)"], sym7: 3, symTrend: "—", peso: [64.5, 64.5, 64.5, 64.5, 64.4, 64.4], meta: 63, adesao: 100, ultimo: "hoje", av: "👩",
+    semanas: [0, 0, 0, 0, 1, 3], worst: [["04/07", "2 sintomas (máx ●●○)", "prova na faculdade — ansiedade"]],
+    habitos: ["Começou há 3 dias — linha de base em construção", "100% das doses até aqui", "Registrando todas as refeições ✔"] },
+  { id: 6, nome: "Roberto Dias", idade: 47, dx: "DRGE + H. pylori", status: ["serious", "🟠 Adesão baixa"], sym7: 4, symTrend: "→", peso: [95.3, 95.1, 94.8, 94.9, 94.6, 94.5], meta: 90, adesao: 54, ultimo: "hoje", av: "🧔",
+    semanas: [5, 4, 5, 4, 4, 4], worst: [["30/06", "2 sintomas (máx ●●●)", "esqueceu antibiótico 2 dias seguidos"]],
+    habitos: ["54% das doses tomadas (16/30) — esquece a dose da noite", "Sintomas estáveis, sem melhora", "Sugerido: alarme das 22h reconfigurado na consulta"] },
+  { id: 7, nome: "Lúcia Prado", idade: 52, dx: "Gastrite + refluxo noturno", status: ["good", "✅ Em progresso"], sym7: 2, symTrend: "↓", peso: [78.9, 78.5, 78.2, 78.0, 77.6, 77.2], meta: 74, adesao: 90, ultimo: "hoje", av: "👩‍🦰",
+    semanas: [6, 5, 5, 4, 3, 2], worst: [["21/06", "2 sintomas (máx ●●●)", "deitou logo após o jantar"]],
+    habitos: ["90% das doses tomadas", "Elevou a cabeceira da cama em 15/06 — refluxo noturno caiu", "🎯 12 dias jantando antes das 19h30"] },
+  { id: 8, nome: "Paulo Nunes", idade: 60, dx: "DRGE", status: ["warn", "⚠️ Peso subindo"], sym7: 3, symTrend: "→", peso: [90.2, 90.5, 90.8, 91.0, 91.2, 91.4], meta: 86, adesao: 86, ultimo: "hoje", av: "👴",
+    semanas: [3, 3, 2, 3, 3, 3], worst: [["28/06", "2 sintomas (máx ●●○)", "festa de aniversário do neto"]],
+    habitos: ["86% das doses tomadas", "+1,2 kg em 30 dias — sintomas acompanham o peso", "Sugerido: revisar porções do jantar na consulta"] },
+];
+
+const ALERTS = [
+  { p: 2, chip: ["crit", "🔴 Crise"], txt: "<b>João Pereira</b> — 6 sintomas nos últimos 7 dias (↑), jantar tarde e café diário." },
+  { p: 6, chip: ["serious", "🟠 Adesão"], txt: "<b>Roberto Dias</b> — só 54% das doses tomadas; esquece a dose da noite." },
+  { p: 4, chip: ["warn", "⚠️ Inativo"], txt: "<b>Carlos Mendes</b> — sem abrir o app há 9 dias." },
+];
+
+/* ================= navegação ================= */
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => Array.from(document.querySelectorAll(s));
+$("#btn-entrar").addEventListener("click", () => { $("#login").style.display = "none"; });
+
+function showTab(t) {
+  $("#view-geral").style.display = t === "geral" ? "" : "none";
+  $("#view-paciente").style.display = t === "paciente" ? "" : "none";
+  $$(".tab").forEach((x) => x.classList.toggle("active", x.dataset.tab === t));
+}
+$$(".tab").forEach((t) => t.addEventListener("click", () => showTab(t.dataset.tab)));
+$("#btn-voltar").addEventListener("click", () => showTab("geral"));
+
+/* ================= visão geral ================= */
+$("#alerts").innerHTML = ALERTS.map((a) =>
+  `<div class="alert-row"><span class="chip ${a.chip[0]}">${a.chip[1]}</span><span>${a.txt}</span>
+   <button class="btn small ghost go" data-p="${a.p}">Abrir ficha</button></div>`).join("");
+
+function rows(filter) {
+  const f = (filter || "").toLowerCase();
+  $("#pt-rows").innerHTML = PATIENTS.filter((p) => !f || p.nome.toLowerCase().includes(f)).map((p) => {
+    const d = p.peso[p.peso.length - 1] - p.peso[0];
+    return `<tr data-p="${p.id}">
+      <td class="pt-name">${p.av} ${p.nome}<span>${p.idade} anos · ${p.dx}</span></td>
+      <td><span class="chip ${p.status[0]}">${p.status[1]}</span></td>
+      <td>${p.sym7} ${p.symTrend}</td>
+      <td>${d > 0 ? "+" : ""}${d.toFixed(1).replace(".", ",")} kg</td>
+      <td>${p.adesao}%</td>
+      <td>${p.ultimo}</td></tr>`;
+  }).join("");
+  $$("#pt-rows tr").forEach((tr) => tr.addEventListener("click", () => openPatient(Number(tr.dataset.p))));
+}
+rows();
+$("#pt-search").addEventListener("input", (e) => rows(e.target.value));
+$$("#alerts .go").forEach((b) => b.addEventListener("click", () => openPatient(Number(b.dataset.p))));
+
+/* ================= ficha do paciente ================= */
+function openPatient(id) {
+  const p = PATIENTS.find((x) => x.id === id);
+  if (!p) return;
+  $("#tab-paciente").style.display = "";
+  showTab("paciente");
+  $("#pd-avatar").textContent = p.av;
+  $("#pd-nome").textContent = p.nome;
+  $("#pd-meta").textContent = `${p.idade} anos · ${p.dx} · último uso: ${p.ultimo}`;
+  const chip = $("#pd-chip");
+  chip.className = "chip " + p.status[0];
+  chip.textContent = p.status[1];
+  chip.style.marginLeft = "auto";
+
+  const d = p.peso[p.peso.length - 1] - p.peso[0];
+  $("#pd-tiles").innerHTML = `
+    <div class="tile"><div class="lb">Sintomas (7 dias)</div><div class="vl">${p.sym7} ${p.symTrend}</div><div class="sb">semana anterior: ${p.semanas[4]}</div></div>
+    <div class="tile"><div class="lb">Peso atual</div><div class="vl">${p.peso[p.peso.length - 1].toFixed(1).replace(".", ",")}</div><div class="sb">${d > 0 ? "+" : ""}${d.toFixed(1).replace(".", ",")} kg em 30 dias · meta ${p.meta}</div></div>
+    <div class="tile"><div class="lb">Adesão à medicação</div><div class="vl">${p.adesao}%</div><div class="sb">últimos 30 dias</div></div>`;
+
+  $("#pd-worst").innerHTML = p.worst.map((w) =>
+    `<li><b>${w[0]}</b> — ${w[1]}<br><span>comeu/contexto: ${w[2]}</span></li>`).join("");
+  $("#pd-habits").innerHTML = p.habitos.map((h) => `<div class="alert-row" style="cursor:default">${h}</div>`).join("");
+
+  chartSym(p);
+  chartPeso(p);
+  window.scrollTo({ top: 0 });
+}
+
+/* ---- gráfico: colunas de sintomas por semana (série única, azul) ---- */
+function chartSym(p) {
+  const el = $("#chart-sym");
+  const vals = p.semanas, W = 420, H = 190, padL = 26, padB = 24, padT = 18;
+  const max = Math.max(...vals, 1);
+  const band = (W - padL * 2) / vals.length, bw = 22;
+  const y = (v) => H - padB - (v / max) * (H - padB - padT);
+  const maxIdx = vals.indexOf(Math.max(...vals));
+  const bars = vals.map((v, i) => {
+    const cx = padL + band * i + band / 2;
+    const top = y(v), r = Math.min(4, H - padB - top);
+    const path = v ? `M ${cx - bw / 2} ${H - padB} L ${cx - bw / 2} ${top + r} Q ${cx - bw / 2} ${top} ${cx - bw / 2 + r} ${top} L ${cx + bw / 2 - r} ${top} Q ${cx + bw / 2} ${top} ${cx + bw / 2} ${top + r} L ${cx + bw / 2} ${H - padB} Z` : "";
+    const label = (i === maxIdx || i === vals.length - 1) && v
+      ? `<text x="${cx}" y="${top - 5}" text-anchor="middle" font-size="11" fill="var(--viz-ink-2)">${v}</text>` : "";
+    return `<g class="sb-hit" data-i="${i}">${path ? `<path d="${path}" fill="var(--viz-series)"/>` : ""}
+      <rect x="${cx - band / 2}" y="0" width="${band}" height="${H}" fill="transparent"/>${label}
+      <text x="${cx}" y="${H - 7}" text-anchor="middle" font-size="10.5" fill="var(--viz-muted)">sem ${i + 1}</text></g>`;
+  }).join("");
+  el.innerHTML = `<div class="viz-root"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Sintomas por semana">
+    <line x1="${padL}" y1="${H - padB}" x2="${W - padL}" y2="${H - padB}" stroke="var(--viz-axis)" stroke-width="1"/>${bars}</svg>
+    <div class="viz-tooltip"></div></div>`;
+  const tt = el.querySelector(".viz-tooltip"), root = el.firstElementChild;
+  el.querySelectorAll(".sb-hit").forEach((g) => {
+    g.addEventListener("mouseenter", () => { const i = +g.dataset.i; tt.innerHTML = `Semana ${i + 1} — <b>${vals[i]}</b> sintoma${vals[i] === 1 ? "" : "s"}`; tt.style.display = "block"; });
+    g.addEventListener("mousemove", (e) => { const r = root.getBoundingClientRect(); tt.style.left = Math.min(e.clientX - r.left + 10, r.width - tt.offsetWidth - 4) + "px"; tt.style.top = (e.clientY - r.top - 32) + "px"; });
+    g.addEventListener("mouseleave", () => { tt.style.display = "none"; });
+  });
+}
+
+/* ---- gráfico: linha do peso ---- */
+function chartPeso(p) {
+  const el = $("#chart-peso");
+  const vals = p.peso, W = 420, H = 190, padL = 40, padR = 46, padT = 16, padB = 24;
+  let yMin = Math.min(...vals, p.meta), yMax = Math.max(...vals, p.meta);
+  const padY = Math.max((yMax - yMin) * 0.2, 0.6); yMin -= padY; yMax += padY;
+  const X = (i) => padL + (i / (vals.length - 1)) * (W - padL - padR);
+  const Y = (v) => padT + (1 - (v - yMin) / (yMax - yMin)) * (H - padT - padB);
+  const step = (yMax - yMin) > 6 ? 2 : 1;
+  let grid = "";
+  for (let v = Math.ceil(yMin / step) * step; v <= yMax; v += step)
+    grid += `<line x1="${padL}" y1="${Y(v)}" x2="${W - padR}" y2="${Y(v)}" stroke="var(--viz-grid)" stroke-width="1"/>
+      <text x="${padL - 7}" y="${Y(v) + 3.5}" text-anchor="end" font-size="10" fill="var(--viz-muted)">${v}</text>`;
+  const pts = vals.map((v, i) => `${X(i)},${Y(v)}`).join(" ");
+  const area = `M ${X(0)} ${Y(vals[0])} ` + vals.map((v, i) => `L ${X(i)} ${Y(v)}`).join(" ") + ` L ${X(vals.length - 1)} ${H - padB} L ${X(0)} ${H - padB} Z`;
+  const dots = vals.map((v, i) => `<circle cx="${X(i)}" cy="${Y(v)}" r="4" fill="var(--viz-series)" stroke="var(--viz-surface)" stroke-width="2"/>`).join("");
+  const hits = vals.map((v, i) => `<circle class="wp-hit" data-i="${i}" cx="${X(i)}" cy="${Y(v)}" r="13" fill="transparent"/>`).join("");
+  const goal = p.meta >= yMin && p.meta <= yMax
+    ? `<line x1="${padL}" y1="${Y(p.meta)}" x2="${W - padR}" y2="${Y(p.meta)}" stroke="var(--viz-muted)" stroke-width="1"/>
+       <text x="${W - padR + 5}" y="${Y(p.meta) + 3.5}" font-size="10" fill="var(--viz-muted)">meta ${p.meta}</text>` : "";
+  const end = `<text x="${X(vals.length - 1) + 8}" y="${Y(vals[vals.length - 1]) + 4}" font-size="11.5" font-weight="600" fill="var(--viz-ink-2)">${vals[vals.length - 1].toFixed(1).replace(".", ",")}</text>`;
+  el.innerHTML = `<div class="viz-root"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Evolução do peso">
+    ${grid}${goal}
+    <line x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}" stroke="var(--viz-axis)" stroke-width="1"/>
+    <path d="${area}" fill="var(--viz-series)" opacity="0.1"/>
+    <polyline points="${pts}" fill="none" stroke="var(--viz-series)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${dots}${end}
+    <text x="${X(0)}" y="${H - 7}" text-anchor="middle" font-size="10" fill="var(--viz-muted)">-30d</text>
+    <text x="${X(vals.length - 1)}" y="${H - 7}" text-anchor="middle" font-size="10" fill="var(--viz-muted)">hoje</text>
+    ${hits}</svg><div class="viz-tooltip"></div></div>`;
+  const tt = el.querySelector(".viz-tooltip"), root = el.firstElementChild;
+  el.querySelectorAll(".wp-hit").forEach((c) => {
+    c.addEventListener("mouseenter", () => { const i = +c.dataset.i; tt.innerHTML = `${["-30d","-24d","-18d","-12d","-6d","hoje"][i]} — <b>${vals[i].toFixed(1).replace(".", ",")} kg</b>`; tt.style.display = "block"; });
+    c.addEventListener("mousemove", (e) => { const r = root.getBoundingClientRect(); tt.style.left = Math.min(e.clientX - r.left + 10, r.width - tt.offsetWidth - 4) + "px"; tt.style.top = (e.clientY - r.top - 32) + "px"; });
+    c.addEventListener("mouseleave", () => { tt.style.display = "none"; });
+  });
+}
+</script>
+</body>
+</html>
