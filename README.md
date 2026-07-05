@@ -26,7 +26,7 @@ os dados guardados apenas no seu aparelho.
 
 ### Opção 1 — GitHub Pages (recomendado)
 1. No repositório: **Settings → Pages → Source: Deploy from a branch → main / (root)**.
-2. Acesse a URL gerada (ex.: `https://seuusuario.github.io/App-Refluxo/`) no celular.
+2. Acesse **<https://danielgomes2025.github.io/Refluxo-app/>** no celular.
 3. No navegador, toque em **⋮ → Adicionar à tela inicial** para instalar como app.
 
 ### Opção 2 — Local
