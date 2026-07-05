@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f766e" />
+  <meta name="description" content="GastroCuida — seu companheiro diário para cuidar da gastrite e do refluxo: guia de alimentos, receitas leves, alarmes de refeição, lembrete de remédios, diário de sintomas, peso e metas." />
+  <title>GastroCuida · Gastrite & Refluxo</title>
+  <link rel="manifest" href="../manifest.webmanifest" />
+  <link rel="icon" href="../icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="../icon-192.png" />
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+  <div style="position:fixed;top:74px;right:-38px;z-index:60;transform:rotate(45deg);background:#b45309;color:#fff;font:700 11px/1 system-ui;padding:6px 44px;box-shadow:0 2px 6px rgba(0,0,0,.3);pointer-events:none">DEMONSTRAÇÃO</div>
+
+  <header class="topbar">
+    <span class="logo" id="brand-logo">🌿</span>
+    <h1 id="brand-name">GastroCuida</h1>
+    <div class="clock">
+      <div class="time" id="clock-time">--:--</div>
+      <div class="sync" id="clock-sync">sincronizando…</div>
+    </div>
+    <button class="theme-btn" id="theme-btn" title="Alternar tema" aria-label="Alternar tema claro/escuro">🌓</button>
+  </header>
+
+  <main>
+    <!-- ===================== INÍCIO ===================== -->
+    <section class="view" id="view-inicio" aria-label="Início">
+      <div class="hero">
+        <div class="hello" id="hero-hello">Olá!</div>
+        <div class="next-meal" id="hero-next">—</div>
+        <div class="countdown" id="hero-countdown"></div>
+      </div>
+
+      <div class="quick-grid">
+        <button class="quick" data-goto="guia"><span class="qi">🥗</span>Guia</button>
+        <button class="quick" data-goto="receitas"><span class="qi">🍳</span>Receitas</button>
+        <button class="quick" id="quick-rotina"><span class="qi">⏰</span>Alarmes</button>
+        <button class="quick" id="quick-cha"><span class="qi">🍵</span>Chás</button>
+      </div>
+
+      <div class="card">
+        <h4>✅ Refeições de hoje</h4>
+        <div id="home-meals"></div>
+      </div>
+
+      <div class="card" id="home-meds-card">
+        <h4>💊 Remédios de hoje</h4>
+        <div id="home-meds"></div>
+      </div>
+
+      <div class="card">
+        <h4>💧 Água de hoje <span class="muted" id="water-count"></span></h4>
+        <div class="water-dots" id="water-dots"></div>
+        <p class="muted" style="margin-top:8px">Pequenos goles ao longo do dia — evite volumes grandes junto das refeições.</p>
+      </div>
+
+      <div class="card" id="home-tip"></div>
+
+      <div class="notice info" id="home-sleep-warning" style="display:none"></div>
+
+      <p class="muted" style="text-align:center; margin:18px 0">
+        🌿 O GastroCuida é um apoio educativo e de organização.<br>Ele não substitui médico nem nutricionista.
+      </p>
+    </section>
+
+    <!-- ===================== GUIA ===================== -->
+    <section class="view" id="view-guia" aria-label="Guia de alimentos">
+      <h2 class="section">O que posso comer? 🥗</h2>
+      <input type="search" id="food-search" placeholder="Buscar alimento… (ex.: ovo, inhame, café)" style="margin-bottom:10px" />
+      <div class="chips" id="food-chips"></div>
+      <div id="food-list"></div>
+    </section>
+
+    <!-- ===================== RECEITAS ===================== -->
+    <section class="view" id="view-receitas" aria-label="Receitas">
+      <h2 class="section">Receitas leves 🍳</h2>
+      <input type="search" id="recipe-search" placeholder="Buscar receita ou ingrediente… (ex.: inhame, airfryer)" style="margin-bottom:10px" />
+      <div class="chips" id="recipe-chips"></div>
+      <div class="recipe-grid" id="recipe-grid"></div>
+    </section>
+
+    <!-- ===================== DIÁRIO ===================== -->
+    <section class="view" id="view-diario" aria-label="Diário">
+      <h2 class="section">Diário 📔</h2>
+      <div class="day-nav">
+        <button class="btn subtle small" id="day-prev">‹</button>
+        <div class="date" id="day-label"></div>
+        <button class="btn subtle small" id="day-next">›</button>
+      </div>
+
+      <div class="card">
+        <h4>Refeições</h4>
+        <p class="muted">Marque o que comeu e anote os alimentos — é assim que os gatilhos aparecem.</p>
+        <div id="diary-meals"></div>
+      </div>
+
+      <div class="card">
+        <h4>Sintomas</h4>
+        <div id="diary-symptoms"></div>
+        <div class="spacer"></div>
+        <div class="row">
+          <select id="sym-type"></select>
+          <input type="time" id="sym-time" class="fit" style="max-width:110px" />
+        </div>
+        <div class="spacer"></div>
+        <div class="seg" id="sym-intensity">
+          <button data-v="1" class="active">Leve</button>
+          <button data-v="2">Médio</button>
+          <button data-v="3">Forte</button>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn block" id="sym-add">+ Registrar sintoma</button>
+      </div>
+
+      <div class="card">
+        <h4>Sintomas nos últimos 7 dias</h4>
+        <div id="sym-chart"></div>
+      </div>
+
+      <div class="card">
+        <h4>Anotações do dia</h4>
+        <textarea id="diary-notes" rows="3" placeholder="Como foi o dia? Estresse, sono, o que ajudou…"></textarea>
+      </div>
+    </section>
+
+    <!-- ===================== MAIS (hub) ===================== -->
+    <section class="view" id="view-mais" aria-label="Mais opções">
+      <h2 class="section">Mais ⚙️</h2>
+      <div class="card flat" style="padding:6px 16px">
+        <div class="check-row" data-sub="rotina"><span style="font-size:20px">⏰</span><span class="n"><b>Rotina & alarmes</b><br><span class="muted">Horários das refeições e do sono</span></span><span>›</span></div>
+        <div class="check-row" data-sub="remedios"><span style="font-size:20px">💊</span><span class="n"><b>Remédios</b><br><span class="muted">Lembretes de medicação</span></span><span>›</span></div>
+        <div class="check-row" data-sub="peso"><span style="font-size:20px">⚖️</span><span class="n"><b>Peso & metas</b><br><span class="muted">Evolução, gráfico e desafios</span></span><span>›</span></div>
+        <div class="check-row" data-sub="relatorio"><span style="font-size:20px">🩺</span><span class="n"><b>Relatório para a consulta</b><br><span class="muted">Resumo dos sintomas, peso e hábitos para mostrar ao médico</span></span><span>›</span></div>
+        <div class="check-row" data-sub="dicas"><span style="font-size:20px">💡</span><span class="n"><b>Dicas</b><br><span class="muted">Hábitos que aceleram a recuperação</span></span><span>›</span></div>
+        <div class="check-row" data-sub="safra"><span style="font-size:20px">🧺</span><span class="n"><b>Produtos da estação</b><br><span class="muted">Frutas e legumes do mês</span></span><span>›</span></div>
+        <div class="check-row" data-sub="sobre"><span style="font-size:20px">🌿</span><span class="n"><b>Sobre & dados</b><br><span class="muted">Aviso médico, exportar/importar</span></span><span>›</span></div>
+      </div>
+    </section>
+
+    <!-- ===================== SUB: ROTINA ===================== -->
+    <section class="view" id="view-rotina" aria-label="Rotina e alarmes">
+      <button class="btn subtle small" data-goto="mais">‹ Voltar</button>
+      <h2 class="section" style="margin-top:10px">Rotina & alarmes ⏰</h2>
+
+      <div class="card">
+        <h4>Horários das refeições</h4>
+        <p class="muted">Comer a cada ~3 horas mantém o estômago calmo. Ative o sino para receber o alarme.</p>
+        <div id="meal-editor"></div>
+        <div class="spacer"></div>
+        <button class="btn ghost small" id="meal-add">+ Adicionar refeição</button>
+      </div>
+
+      <div class="card">
+        <h4>Sono & refluxo noturno</h4>
+        <label class="field"><span>Horário em que costuma deitar</span>
+          <input type="time" id="sleep-time" />
+        </label>
+        <p class="muted" id="sleep-hint"></p>
+      </div>
+
+      <div class="card">
+        <h4>Notificações e som</h4>
+        <p class="muted">O relógio do app é sincronizado com o horário oficial pela internet. Com o app aberto (ou instalado e em segundo plano), você recebe alarme com som e notificação.</p>
+        <div class="spacer"></div>
+        <div class="row">
+          <button class="btn block" id="notif-btn">🔔 Ativar notificações</button>
+          <button class="btn subtle fit" id="alarm-test">Testar alarme</button>
+        </div>
+        <p class="muted" style="margin-top:8px">Dica: instale o app na tela inicial (menu do navegador → “Adicionar à tela inicial”) para os alarmes funcionarem melhor.</p>
+      </div>
+    </section>
+
+    <!-- ===================== SUB: REMÉDIOS ===================== -->
+    <section class="view" id="view-remedios" aria-label="Remédios">
+      <button class="btn subtle small" data-goto="mais">‹ Voltar</button>
+      <h2 class="section" style="margin-top:10px">Remédios 💊</h2>
+
+      <div class="card">
+        <div id="med-list"></div>
+        <div class="spacer"></div>
+        <h4>Novo lembrete</h4>
+        <label class="field"><span>Nome do remédio</span><input id="med-name" placeholder="ex.: Omeprazol 20 mg" /></label>
+        <label class="field"><span>Observação (opcional)</span><input id="med-dose" placeholder="ex.: em jejum, 30 min antes do café" /></label>
+        <label class="field"><span>Horários (separados por vírgula)</span><input id="med-times" placeholder="ex.: 06:30, 22:00" /></label>
+        <button class="btn block" id="med-add">+ Adicionar remédio</button>
+        <div class="notice" style="margin-top:12px">Use somente medicamentos prescritos pelo seu médico. Este app apenas lembra os horários.</div>
+      </div>
+    </section>
+
+    <!-- ===================== SUB: PESO & METAS ===================== -->
+    <section class="view" id="view-peso" aria-label="Peso e metas">
+      <button class="btn subtle small" data-goto="mais">‹ Voltar</button>
+      <h2 class="section" style="margin-top:10px">Peso & metas ⚖️</h2>
+
+      <div class="stat-tiles" id="weight-tiles"></div>
+
+      <div class="card">
+        <h4>Evolução do peso</h4>
+        <div id="weight-chart"></div>
+        <div class="spacer"></div>
+        <div class="row">
+          <input type="number" id="weight-input" step="0.1" min="20" max="400" placeholder="Peso de hoje (kg)" inputmode="decimal" />
+          <button class="btn fit" id="weight-add">Registrar</button>
+        </div>
+        <div class="spacer"></div>
+        <div class="row">
+          <input type="number" id="goal-weight" step="0.5" min="20" max="400" placeholder="Meta de peso (kg)" inputmode="decimal" />
+          <button class="btn subtle fit" id="goal-weight-save">Salvar meta</button>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn ghost small" id="weight-table-toggle">Ver tabela</button>
+        <div id="weight-table" style="display:none"></div>
+      </div>
+
+      <div class="card">
+        <h4>Metas & desafios 🎯</h4>
+        <p class="muted">Marque presença todo dia e construa sua sequência.</p>
+        <div id="goal-list"></div>
+        <div class="spacer"></div>
+        <div class="row">
+          <select id="goal-select"></select>
+          <button class="btn fit" id="goal-add">+ Meta</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== SUB: DICAS ===================== -->
+    <section class="view" id="view-dicas" aria-label="Dicas">
+      <button class="btn subtle small" data-goto="mais">‹ Voltar</button>
+      <h2 class="section" style="margin-top:10px">Dicas 💡</h2>
+      <div id="tips-list"></div>
+    </section>
+
+    <!-- ===================== SUB: SAFRA ===================== -->
+    <section class="view" id="view-safra" aria-label="Produtos da estação">
+      <button class="btn subtle small" data-goto="mais">‹ Voltar</button>
+      <h2 class="section" style="margin-top:10px">Produtos da estação 🧺</h2>
+      <p class="muted">Frutas e legumes da safra são mais baratos, mais saborosos e mais nutritivos. Calendário aproximado (base CEAGESP/Sudeste) — varia por região.</p>
+      <div class="chips" id="month-chips"></div>
+      <div id="season-content"></div>
+    </section>
+
+    <!-- ===================== SUB: SOBRE ===================== -->
+    <!-- ===================== SUB: RELATÓRIO ===================== -->
+    <section class="view" id="view-relatorio" aria-label="Relatório para a consulta">
+      <button class="btn subtle small no-print" data-goto="mais">‹ Voltar</button>
+      <h2 class="section no-print" style="margin-top:10px">Relatório para a consulta 🩺</h2>
+      <p class="muted no-print">Leve este resumo para o seu médico ou nutricionista: ele mostra em 1 página o que aconteceu desde a última consulta.</p>
+      <div class="seg no-print" id="report-period" style="margin-bottom:12px">
+        <button data-d="7">7 dias</button>
+        <button data-d="30" class="active">30 dias</button>
+        <button data-d="90">90 dias</button>
+      </div>
+      <div id="report-content"></div>
+      <div class="row no-print" style="margin-top:12px">
+        <button class="btn" id="report-print">🖨️ Imprimir / PDF</button>
+        <button class="btn subtle" id="report-copy">📋 Copiar texto</button>
+        <button class="btn subtle" id="report-wa">💬 WhatsApp</button>
+      </div>
+    </section>
+
+    <section class="view" id="view-sobre" aria-label="Sobre">
+      <button class="btn subtle small" data-goto="mais">‹ Voltar</button>
+      <h2 class="section" style="margin-top:10px">Sobre o GastroCuida 🌿</h2>
+      <div class="card" id="brand-about" style="display:none"></div>
+      <div class="card">
+        <p>O GastroCuida organiza a parte mais difícil da recuperação de quem tem <b>gastrite</b> e <b>refluxo (DRGE)</b>: a alimentação e a rotina. Guia de alimentos, receitas leves, horários com alarme, lembrete de remédios, diário de sintomas, peso e metas — tudo no seu bolso, funcionando offline.</p>
+        <p class="muted">Seus dados ficam somente no seu aparelho (armazenamento local do navegador). Nada é enviado para servidores.</p>
+      </div>
+      <div class="notice danger">
+        <b>Aviso importante:</b> este aplicativo tem caráter educativo e organizacional. Ele <b>não substitui</b> consulta com médico gastroenterologista nem com nutricionista. Não inicie, troque ou interrompa medicamentos ou fitoterápicos (incluindo espinheira-santa e babosa) por conta própria. Em caso de dor intensa, vômito persistente, sangramento, dificuldade para engolir ou perda de peso sem explicação, procure atendimento médico.
+      </div>
+      <div class="card">
+        <h4>Seus dados</h4>
+        <div class="row">
+          <button class="btn subtle" id="data-export">⬇️ Exportar</button>
+          <button class="btn subtle" id="data-import">⬆️ Importar</button>
+          <button class="btn danger" id="data-reset">Apagar tudo</button>
+        </div>
+        <input type="file" id="data-file" accept="application/json" style="display:none" />
+      </div>
+      <div class="card">
+        <label class="field"><span>Seu nome (para o app te cumprimentar)</span>
+          <input id="user-name" placeholder="ex.: Daniel" />
+        </label>
+      </div>
+    </section>
+  </main>
+
+  <!-- navegação inferior -->
+  <nav class="bottom">
+    <button data-view="inicio" class="active"><span class="ni">🏠</span>Início</button>
+    <button data-view="guia"><span class="ni">🥗</span>Guia</button>
+    <button data-view="receitas"><span class="ni">🍳</span>Receitas</button>
+    <button data-view="diario"><span class="ni">📔</span>Diário</button>
+    <button data-view="mais"><span class="ni">⚙️</span>Mais</button>
+  </nav>
+
+  <!-- modal genérico -->
+  <div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal" id="modal" role="dialog" aria-modal="true"></div>
+  </div>
+
+  <!-- alarme em tela cheia -->
+  <div id="alarm-banner">
+    <div class="big">⏰</div>
+    <h2 id="alarm-title">Hora da refeição!</h2>
+    <p id="alarm-sub"></p>
+    <button class="btn" style="background:#fff;color:#0b5e58" id="alarm-dismiss">OK, entendi</button>
+  </div>
+
+  <div id="toast" role="status"></div>
+
+  <script src="./config.js"></script>
+  <script src="../data.js"></script>
+  <script src="../app.js"></script>
+</body>
+</html>

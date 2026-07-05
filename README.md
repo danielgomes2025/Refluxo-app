@@ -22,6 +22,17 @@ os dados guardados apenas no seu aparelho.
 | 🧺 **Produtos da estação** | Frutas e legumes da safra de cada mês (calendário aproximado, base CEAGESP). |
 | 🌗 **Extra** | Tema claro/escuro, exportar/importar dados (JSON), instalável na tela inicial (PWA), 100% offline. |
 
+## 🩺 Para médicos (white-label)
+
+O app pode ser personalizado com a marca de um médico ou clínica editando apenas o
+arquivo `config.js` (nome, CRM, especialidade, WhatsApp, mensagem de boas-vindas).
+
+- **Página de apresentação para médicos:** [`medicos.html`](https://danielgomes2025.github.io/Refluxo-app/medicos.html)
+- **Demonstração com médica fictícia e 5 semanas de dados:** [`demo/`](https://danielgomes2025.github.io/Refluxo-app/demo/)
+- **Relatório para a consulta:** o paciente gera um resumo de 7/30/90 dias
+  (sintomas, gatilhos, peso, adesão à medicação) e leva impresso, em PDF ou
+  envia por WhatsApp.
+
 ## 🚀 Como usar
 
 ### Opção 1 — GitHub Pages (recomendado)

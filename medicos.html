@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GastroCuida para Médicos — o app de gastrite e refluxo com o seu nome</title>
+<meta name="description" content="Ofereça aos seus pacientes um app de acompanhamento de gastrite e refluxo personalizado com o seu nome: guia alimentar, receitas, alarmes, diário de sintomas e relatório para a consulta." />
+<link rel="icon" href="icon.svg" type="image/svg+xml" />
+<style>
+  :root {
+    --brand: #0f766e; --brand-2: #0b5e58; --soft: #d9efe9;
+    --bg: #f6f8f5; --surface: #fff; --text: #1c211d; --text-2: #55605a; --line: #e3e7e1;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  .wrap { max-width: 1020px; margin: 0 auto; padding: 0 20px; }
+  header.top { position: sticky; top: 0; z-index: 10; background: rgba(246,248,245,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  header.top .wrap { display: flex; align-items: center; gap: 10px; padding: 12px 20px; }
+  header.top b { font-size: 17px; }
+  header.top .tag { font-size: 12px; color: var(--brand); font-weight: 700; border: 1px solid var(--brand); border-radius: 999px; padding: 2px 10px; }
+  .btn { display: inline-block; background: var(--brand); color: #fff; text-decoration: none; font-weight: 700; padding: 13px 24px; border-radius: 12px; font-size: 15.5px; }
+  .btn:hover { background: var(--brand-2); }
+  .btn.ghost { background: transparent; color: var(--brand); border: 2px solid var(--brand); }
+  .btn.small { padding: 8px 16px; font-size: 13.5px; margin-left: auto; }
+
+  .hero { padding: 64px 0 36px; text-align: center; }
+  .hero h1 { font-size: clamp(28px, 5vw, 44px); line-height: 1.15; letter-spacing: -.02em; max-width: 780px; margin: 0 auto 16px; }
+  .hero h1 em { color: var(--brand); font-style: normal; }
+  .hero p.sub { font-size: 18px; color: var(--text-2); max-width: 640px; margin: 0 auto 28px; }
+  .cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  .stats { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; padding: 28px 0 8px; }
+  .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 22px; text-align: center; min-width: 130px; }
+  .stat b { display: block; font-size: 26px; color: var(--brand); }
+  .stat span { font-size: 13px; color: var(--text-2); }
+
+  section { padding: 48px 0; }
+  section.alt { background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  h2 { font-size: clamp(22px, 3.6vw, 30px); letter-spacing: -.01em; margin-bottom: 10px; }
+  .lead { color: var(--text-2); max-width: 680px; margin-bottom: 28px; }
+
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .step { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
+  section.alt .step { background: var(--bg); }
+  .step .n { display: inline-flex; width: 34px; height: 34px; border-radius: 999px; background: var(--soft); color: var(--brand-2); font-weight: 800; align-items: center; justify-content: center; margin-bottom: 10px; }
+  .step h3 { font-size: 16.5px; margin-bottom: 6px; }
+  .step p { font-size: 14.5px; color: var(--text-2); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .feat { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+  .feat .ic { font-size: 26px; }
+  .feat h3 { font-size: 16px; margin: 8px 0 4px; }
+  .feat p { font-size: 14px; color: var(--text-2); }
+
+  .split { display: grid; grid-template-columns: 1.1fr .9fr; gap: 36px; align-items: center; }
+  @media (max-width: 760px) { .split { grid-template-columns: 1fr; } }
+  .phone { border-radius: 28px; border: 8px solid #1c211d; overflow: hidden; box-shadow: 0 20px 50px rgba(16,24,20,.18); background: #fff; max-width: 320px; margin: 0 auto; }
+  .phone img { display: block; width: 100%; height: 560px; object-fit: cover; object-position: top; }
+  .shots { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+  .shots figure { text-align: center; }
+  .shots figcaption { font-size: 13px; color: var(--text-2); margin-top: 10px; }
+  ul.check { list-style: none; padding: 0; }
+  ul.check li { padding-left: 30px; position: relative; margin-bottom: 12px; font-size: 15.5px; }
+  ul.check li::before { content: "✓"; position: absolute; left: 0; top: -1px; color: var(--brand); font-weight: 800; font-size: 18px; }
+
+  details { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin-bottom: 10px; }
+  summary { cursor: pointer; font-weight: 700; font-size: 15.5px; }
+  details p { margin-top: 10px; font-size: 14.5px; color: var(--text-2); }
+
+  .final { text-align: center; background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; border-radius: 24px; padding: 48px 28px; }
+  .final h2 { color: #fff; }
+  .final p { opacity: .92; max-width: 560px; margin: 8px auto 24px; }
+  .final .btn { background: #fff; color: var(--brand-2); }
+
+  footer { padding: 32px 0 44px; font-size: 13px; color: var(--text-2); text-align: center; }
+  footer .disclaimer { max-width: 720px; margin: 10px auto 0; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <span style="font-size:22px">🌿</span> <b>GastroCuida</b> <span class="tag">para médicos</span>
+    <a class="btn small" href="demo/">Ver demonstração</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>Seu paciente pergunta <em>“o que eu posso comer, doutor?”</em><br>Este app responde — com o seu nome nele.</h1>
+    <p class="sub">O GastroCuida é um aplicativo de acompanhamento para pacientes com <b>gastrite e refluxo (DRGE)</b>, personalizado com a marca do seu consultório. O paciente segue a dieta em casa — e volta à consulta com um relatório completo.</p>
+    <div class="cta-row">
+      <a class="btn" href="demo/">🩺 Abrir o app de demonstração</a>
+      <a class="btn ghost" href="mailto:antunes.daniell@gmail.com?subject=GastroCuida%20para%20meu%20consult%C3%B3rio">Quero para meu consultório</a>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><b>163</b><span>alimentos classificados</span></div>
+    <div class="stat"><b>57</b><span>receitas leves</span></div>
+    <div class="stat"><b>7–90</b><span>dias de relatório</span></div>
+    <div class="stat"><b>100%</b><span>offline e sem servidor</span></div>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <h2>Como funciona</h2>
+    <p class="lead">Sem sistema para instalar no consultório, sem treinamento, sem mensalidade de servidor. Três passos:</p>
+    <div class="steps">
+      <div class="step"><span class="n">1</span><h3>Personalizamos com a sua marca</h3><p>Seu nome, CRM, especialidade, clínica e WhatsApp entram no app: nas boas-vindas, na tela Sobre e no cabeçalho do relatório que o paciente leva às consultas.</p></div>
+      <div class="step"><span class="n">2</span><h3>O paciente instala pelo seu link</h3><p>Você entrega um link (ou QR code na recepção). O paciente adiciona à tela inicial do celular — funciona em Android e iPhone, sem loja de aplicativos.</p></div>
+      <div class="step"><span class="n">3</span><h3>Ele volta com dados, não com “acho que…”</h3><p>Alarmes de refeição e remédio, diário de sintomas e peso. Na consulta seguinte, o relatório mostra o que aconteceu de verdade entre as consultas.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap split">
+    <div>
+      <h2>O relatório que transforma a consulta</h2>
+      <p class="lead" style="margin-bottom:18px">Gerado pelo próprio paciente em um toque — impresso, em PDF ou direto no seu WhatsApp:</p>
+      <ul class="check">
+        <li><b>Sintomas por frequência e intensidade</b> nos últimos 7, 30 ou 90 dias</li>
+        <li><b>Piores dias com o que foi comido</b> — os gatilhos aparecem sozinhos</li>
+        <li><b>Evolução do peso</b> e distância da meta</li>
+        <li><b>Adesão à medicação</b> (% de doses tomadas) e aos horários de refeição</li>
+        <li>Metas de hábito com sequência de dias (sem café, jantar cedo…)</li>
+      </ul>
+    </div>
+    <div class="phone"><img src="img/tela-relatorio.png" alt="Tela do relatório para a consulta no app" loading="lazy" /></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>O que o paciente recebe</h2>
+    <p class="lead">Educação alimentar contínua — aquilo que não cabe nos 20 minutos de consulta:</p>
+    <div class="grid">
+      <div class="feat"><span class="ic">🥗</span><h3>Guia “o que posso comer?”</h3><p>163 alimentos classificados (pode / moderação / evitar / cautela) com o porquê e o modo de preparo: carnes, ovos, frutas, raízes, chás — incluindo espinheira-santa e o alerta correto sobre babosa.</p></div>
+      <div class="feat"><span class="ic">🍳</span><h3>57 receitas que não agridem</h3><p>Café, almoço, jantar e lanches com busca por ingrediente: crepioca, congee de crise, molho de abóbora no lugar do tomate, airfryer, canjiquinha…</p></div>
+      <div class="feat"><span class="ic">⏰</span><h3>Alarmes de refeição e remédio</h3><p>Comer a cada 3h e tomar o IBP em jejum viram rotina com alarme sonoro — e o app avisa se o jantar está perto demais da hora de dormir.</p></div>
+      <div class="feat"><span class="ic">📔</span><h3>Diário de sintomas</h3><p>Azia, refluxo, dor, náusea — com hora e intensidade. Em duas semanas, o padrão dos gatilhos individuais aparece.</p></div>
+      <div class="feat"><span class="ic">⚖️</span><h3>Peso e metas</h3><p>Gráfico de evolução, meta de peso e desafios de hábito com sequência de dias para engajar.</p></div>
+      <div class="feat"><span class="ic">💡</span><h3>Dicas e safra do mês</h3><p>Cabeceira elevada, dormir do lado esquerdo, mastigação — e as frutas e legumes da estação, mês a mês.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <h2>Veja o app por dentro</h2>
+    <p class="lead">Ou melhor: <a href="demo/" style="color:var(--brand);font-weight:700">abra a demonstração interativa</a> com uma paciente fictícia e 5 semanas de uso.</p>
+    <div class="shots">
+      <figure><div class="phone"><img src="img/tela-inicio.png" alt="Tela inicial com alarmes e refeições" loading="lazy" /></div><figcaption>Início: próxima refeição, água e remédios</figcaption></figure>
+      <figure><div class="phone"><img src="img/tela-receita.png" alt="Receita passo a passo" loading="lazy" /></div><figcaption>Receitas com passo a passo e dicas</figcaption></figure>
+      <figure><div class="phone"><img src="img/tela-peso.png" alt="Gráfico de evolução do peso no tema escuro" loading="lazy" /></div><figcaption>Peso e metas (tema claro e escuro)</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Privacidade que facilita a sua vida (e a LGPD)</h2>
+    <p class="lead" style="margin-bottom:0">Os dados do paciente ficam <b>somente no aparelho dele</b> — nada é enviado a servidores. Não há cadastro, senha ou banco de dados: o paciente é dono dos próprios registros e decide o que compartilhar com você (o relatório). Para o consultório, isso significa <b>zero custo de infraestrutura e zero risco de vazamento</b>.</p>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <h2>Perguntas frequentes</h2>
+    <details><summary>Precisa publicar em loja de aplicativos?</summary><p>Não. É um PWA (Progressive Web App): o paciente abre o seu link e adiciona à tela inicial. Funciona em Android e iPhone, inclusive offline depois da primeira visita.</p></details>
+    <details><summary>Posso alterar o conteúdo (alimentos, receitas, dicas)?</summary><p>O conteúdo-base é mantido por nós e pode ser ajustado sob demanda para o seu consultório — por exemplo, incluir suas orientações padrão na tela de boas-vindas.</p></details>
+    <details><summary>O app substitui a consulta ou dá diagnóstico?</summary><p>Não — e isso é proposital. Ele é uma ferramenta educativa e de organização, com aviso médico permanente. Diagnóstico e conduta continuam sendo seus.</p></details>
+    <details><summary>Quanto custa?</summary><p>Licença por médico/clínica com personalização incluída. Fale com a gente para conhecer os planos.</p></details>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="final">
+      <h2>Ofereça mais que uma dieta impressa</h2>
+      <p>Coloque o acompanhamento da gastrite e do refluxo no bolso do seu paciente — com o seu nome na tela.</p>
+      <a class="btn" href="mailto:antunes.daniell@gmail.com?subject=GastroCuida%20para%20meu%20consult%C3%B3rio">📩 Falar com a gente</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    🌿 GastroCuida — app de apoio a pacientes com gastrite e refluxo
+    <p class="disclaimer">O GastroCuida é uma ferramenta educativa e de organização de rotina. Não realiza diagnóstico, não prescreve tratamento e não substitui consulta médica ou nutricional. A demonstração usa médica e paciente fictícios.</p>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -5,7 +5,7 @@
 "use strict";
 
 /* ---------------- estado ---------------- */
-const STORE_KEY = "gastrocuida:v1";
+const STORE_KEY = (typeof BRAND !== "undefined" && BRAND.storageKey) || "gastrocuida:v1";
 
 const defaultState = () => ({
   settings: { name: "", sleepTime: "22:30", goalWeight: null, theme: null, notif: false, onboarded: false },
